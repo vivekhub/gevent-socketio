@@ -144,6 +144,15 @@ Getting started
 Until we have a fully-fledged tutorial, please check out our example
 applications and the API documentation.
 
+You can see a video that shows ``gevent-socketio`` in a live coding
+presentation here:
+
+  http://pyvideo.org/video/1573/gevent-socketio-cross-framework-real-time-web-li
+
+To learn how to build your Namespace (the object dealing with requests and replies), see:
+
+  :ref:`namespace_module`
+
 See this doc for different servers integration:
 
   :ref:`server_integration`
@@ -151,7 +160,7 @@ See this doc for different servers integration:
 Examples
 --------
 
-The ``gevent-socketio`` holds several examples:
+The ``gevent-socketio`` repository holds several examples:
 
   https://github.com/abourget/gevent-socketio/tree/master/examples
 
@@ -174,9 +183,44 @@ This app is a Django tic-tac-toe application that uses the latest
   https://github.com/sontek/django-tictactoe
 
 
+Security
+--------
+
+``gevent-socketio`` provides method-level security, using an ACL
+model.  You can read more about it in the :ref:`namespace_module`, but
+a basic example to secure one namespace would look like:
+
+.. code-block:: python
+
+    class AdminInterface(BaseNamespace):
+        def get_initial_acl(self):
+            """Everything is locked at first"""
+            return []
+
+        def initialize(self):
+            # This here assumes you have passed in a `request`
+            # to your socketio_manage() call, it has that
+            # `is_admin` attribute
+            if not request.is_admin:
+                return
+            else:
+                self.lift_acl_restrictions()
+
+        def on_blahblahblah(self, data):
+            """This can't be access until `lift_acl_restrictions()` has
+            been called
+
+            """
+            pass
+
+
 
 API docs
 --------
+
+API documentation is where most of the juice/meat is.  Read through
+and you'll (hopefully) understand everything you need about
+``gevent-socketio``.
 
 The manager is the function you call from your framework.  It is in:
 
@@ -273,10 +317,10 @@ The mailing list:
 
   https://groups.google.com/forum/#!forum/gevent-socketio
 
-The maintainer:
+The maintainers:
 
-  https://twitter.com/#!/bourgetalexndre
-  https://plus.google.com/109333785244622657612
+  https://twitter.com/bourgetalexndre
+  https://twitter.com/sontek
 
 
 Credits
@@ -287,7 +331,7 @@ Credits
 PyCon 2012 and the Sprints, for bringing this project up to version
 0.9 of the protocol.
 
-Current maintainer:
+Current maintainers:
 
  * Alexandre Bourget
  * John Anderson
@@ -298,11 +342,29 @@ Contributors:
  * Bobby Powers
  * Lon Ingram
  * Eugene Baumstein
- * Alexandre Bourget
  * Sébastien Béal
  * jpellerin (JP)
  * Philip Neustrom
-
+ * Jonas Obrist
+ * fabiodive
+ * Dan O'Neill
+ * Whit Morriss
+ * Chakib (spike) Benziane
+ * Vivek Venugopalan
+ * Vladimir Protasov
+ * Bruno Bigras
+ * Gabriel de Labacheliere
+ * Flavio Curella
+ * thapar
+ * Marconi Moreto
+ * sv1jsb
+ * Cliff Xuan
+ * Matt Billenstein
+ * Rolo
+ * Anthony Oliver
+ * Pierre Giraud
+ * m0sth8
+ * Daniel Swarbrick
 
 
 TODO

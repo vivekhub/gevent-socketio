@@ -108,12 +108,6 @@ Sending data
 Dealing with incoming data
 --------------------------
 
-     .. automethod:: BaseNamespace.process_event
-
-     You should override this method only if you are not satisfied with the
-     automatic dispatching to ``on_``-prefixed methods.  You could then
-     implement your own dispatch.  See the source code for inspiration.
-
      .. automethod:: BaseNamespace.recv_connect
 
      .. automethod:: BaseNamespace.recv_message
@@ -123,6 +117,48 @@ Dealing with incoming data
      .. automethod:: BaseNamespace.recv_error
 
      .. automethod:: BaseNamespace.recv_disconnect
+
+     .. method:: BaseNamespace.exception_handler_decorator(fn)
+
+       This method can be a static, class or bound method (that is, with
+       ``@staticmethod``, ``@classmethod`` or without).  It receives one
+       single parameter, and that parameter will be the function the
+       framework is trying to call because some information arrived from
+       the remote client, for instance: ``on_*`` and ``recv_*``
+       functions that you declared on your namespace.
+
+       The decorator is also used to wrap called to
+       ``self.spawn(self.job_something)``, so that if anything happens
+       after you've spawn'd a greenlet, it will still catch it and
+       handle it.
+
+       It should return a decorator with exception handling properly
+       dealt with.  For example:
+
+       .. code-block:: python
+
+        import traceback, sys
+        import logging
+        def exception_handler_decorator(self, fn):
+            def wrap(*args, **kwargs):
+                try:
+                    return fn(*args, **kwargs)
+                except Exception, e:
+                    stack = traceback.format_exception(*sys.exc_info())
+                    db.Evtrack.write("socketio_exception",
+                                     {"error": str(e),
+                                      "trace": stack},
+                                     self.request.email)
+                    logging.getLogger('exc_logger').exception(e)
+            return wrap
+
+
+     .. automethod:: BaseNamespace.process_event
+
+     You would override this method only if you are not completely
+     satisfied with the automatic dispatching to ``on_``-prefixed
+     methods.  You could then implement your own dispatch.  See the
+     source code for inspiration.
 
 
 Process management
@@ -181,6 +217,11 @@ ACL system
      This function is used internally, but can be useful to the developer:
 
      .. automethod:: is_method_allowed
+
+     This is the attribute where the allowed methods are stored, as a list of
+     strings, or a single ``None``::
+
+     .. autoattribute:: allowed_methods
 
 Low-level methods
 -----------------
